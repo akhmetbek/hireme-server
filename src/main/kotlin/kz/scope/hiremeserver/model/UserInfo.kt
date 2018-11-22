@@ -1,14 +1,9 @@
 package kz.scope.hiremeserver.model
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import kz.scope.hiremeserver.model.audit.DateAudit
-import kz.scope.hiremeserver.payload.Education
-import kz.scope.hiremeserver.payload.Employment
-import kz.scope.hiremeserver.payload.StudentProfile
-import org.hibernate.annotations.NaturalId
 import java.time.Instant
-import java.util.HashSet
 import javax.persistence.*
-import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
@@ -19,52 +14,88 @@ import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "userInfo", uniqueConstraints = [UniqueConstraint(columnNames = arrayOf("id"))])
-class UserInfo(student: StudentProfile) {
+class UserInfo(): DateAudit() {
+    constructor(location: String,
+                university: String,
+                graduation: String,
+                major: String,
+                degree: String,
+                hidden : Boolean,
+                strongSkillName: String,
+                strongSkilldescription:String,
+                github:String,
+                linked_in:String,
+                web:String,
+                company:String,
+                currentRole:String,
+                referenceName: String,
+                referenceNumber: String,
+                skills:String,
+                createdAt : Instant) : this() {
+        this.location = location
+        this.university = university
+        this.graduation = graduation
+        this.major = major
+        this.degree = degree
+        this.hidden = hidden
+        this.strongSkillName = strongSkillName
+        this.strongSkilldescription = strongSkilldescription
+        this.github = github
+        this.linked_in = linked_in
+        this.web = web
+        this.company = company
+        this.currentRole = currentRole
+        this.referenceName = referenceName
+        this.referenceNumber = referenceNumber
+        this.skills = skills
+        this.createdAt = createdAt
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
 
-    var location : String = ""
-
-    var position : String = ""
-    var company : String = ""
-
-    var current_role: String = ""
-
-    var university : String = ""
-    var graduationYear : String = ""
-    var graduationMonth : String = ""
-    var major : String = ""
-    var degree : String = ""
-
-    //keep info private - false, public - true
-    var hidden : Boolean = false
-
-    //part-time, full-time etc
-    var job_type : String
-
-    var job_field : String
-
-    //technical skills
-    var skills: String
+    @Size(max = 40)
+    lateinit var location: String
+//education information
+    @Size(max = 40)
+    lateinit var university: String
+    @Column(name = "graduation_date")
+    var graduation: String = ""
+    @Size(max = 40)
+    lateinit var major: String
+    @Size(max = 40)
+    lateinit var degree: String
 
 
 
-    init {
-        this.location = student.location
-        this.position = student.employment.position
-        this.company = student.employment.company
-        this.university = student.education.university
-        this.graduationYear = student.education.graduation_year
-        this.graduationMonth = student.education.graduation_month
-        this.major = student.education.major
-        this.degree = student.education.degree
-        this.skills = student.skills
-        this.hidden = student.hidden
-        this.current_role = student.current_role
-        this.job_type = student.job_type
-        this.job_field = student.job_field
-    }
+    var hidden: Boolean = false
+    //strongest skill data
+    lateinit var strongSkillName: String
+    lateinit var strongSkilldescription: String
+
+    var github : String = ""
+    var linked_in : String = ""
+    var web : String = ""
+
+
+    @Size(max = 40)
+    lateinit var company: String
+    @Size(max = 40)
+    @Column(name = "current_role")
+    lateinit var currentRole: String
+    var referenceName : String = ""
+    var referenceNumber : String = ""
+
+    @Size(max = 40)
+    lateinit var skills: String
+
+
+
+    @OneToOne(mappedBy = "userInfo")
+    lateinit var user: User
+
+
 
 
 }

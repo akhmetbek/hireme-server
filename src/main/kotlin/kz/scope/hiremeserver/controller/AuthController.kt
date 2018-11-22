@@ -6,6 +6,7 @@ import kz.scope.hiremeserver.model.User
 import kz.scope.hiremeserver.model.UserInfo
 import kz.scope.hiremeserver.payload.*
 import kz.scope.hiremeserver.repository.RoleRepository
+import kz.scope.hiremeserver.repository.UserInfoRepository
 import kz.scope.hiremeserver.repository.UserRepository
 import kz.scope.hiremeserver.security.JwtTokenProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,6 +38,9 @@ class AuthController {
     lateinit var userRepository: UserRepository
 
     @Autowired
+    lateinit var userInfoRepository: UserInfoRepository
+
+    @Autowired
     lateinit var roleRepository: RoleRepository
 
     @Autowired
@@ -49,10 +53,10 @@ class AuthController {
     fun authenticateUser(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<*> {
 
         val authentication = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(
-                loginRequest.usernameOrEmail,
-                loginRequest.password
-            )
+                UsernamePasswordAuthenticationToken(
+                        loginRequest.usernameOrEmail,
+                        loginRequest.password
+                )
         )
 
         SecurityContextHolder.getContext().authentication = authentication
@@ -65,30 +69,32 @@ class AuthController {
     fun registerUser(@Valid @RequestBody signUpRequest: SignUpRequest): ResponseEntity<*> {
         if (userRepository.existsByUsername(signUpRequest.username)) {
             return ResponseEntity(ApiResponse(false, "Username is already taken!"),
-                HttpStatus.BAD_REQUEST)
+                    HttpStatus.BAD_REQUEST)
         }
 
         if (userRepository.existsByEmail(signUpRequest.email)) {
             return ResponseEntity(ApiResponse(false, "Email Address already in use!"),
-                HttpStatus.BAD_REQUEST)
+                    HttpStatus.BAD_REQUEST)
         }
 
         // Creating user's account
         val user = User(signUpRequest.fullname, signUpRequest.username,
-            signUpRequest.email, signUpRequest.password)
+                signUpRequest.email, signUpRequest.password)
 
         user.password = passwordEncoder.encode(user.password)
 
         val userRole = roleRepository.findByName(RoleName.ROLE_USER)
-            .orElseThrow { AppException("User Role not set.") }
+                .orElseThrow { AppException("User Role not set.") }
 
         user.roles = setOf(userRole)
+        user.userInfo = UserInfo("", "", "", "", "", 0, "", "", "", false, "", "", "")
 
+        userInfoRepository.save(user.userInfo)
         val result = userRepository.save(user)
 
         val location = ServletUriComponentsBuilder
-            .fromCurrentContextPath().path("/users/{username}")
-            .buildAndExpand(result.username).toUri()
+                .fromCurrentContextPath().path("/users/{username}")
+                .buildAndExpand(result.username).toUri()
 
         return ResponseEntity.created(location).body(ApiResponse(true, "User registered successfully"))
     }

@@ -15,6 +15,5 @@ interface UserInfoRepository : JpaRepository<UserInfo, Long> {
 
     fun findByIdIn(list: List<Long>): List<UserInfo>
 
-
     fun existsByIdIn(userIds: List<Long>): Boolean
 }
